@@ -46,17 +46,20 @@ class Assignment1:
             self.samfile = pysam.AlignmentFile(infileName, "rb")
         # Create pybedtools file
         self.bedtoolfile = pybedtools.BedTool(infileName)
-        # Create myGene and fill it with relevant data of my gene of interest
-        self.numberLinesMyGenes = 0         # for counting the lines in myGene
-        self.myGene = {"name2":[],"name":[],"chrom":[],"start":[],"end":[],"exon":[]}
-        # fetching the gene coordinates
+        # Create myGene and fill it with all occurrences of my gene of interest
+        self.myGenes = {"name2":[],"name":[],"chrom":[],"start":[],"end":[],"exon":[]}
         self.fetch_gene_coordinates("hg19", "USH1C.TXT")
+        # Select the first gene from all occurrences
+        self.myGene = {"name2":[],"name":[],"chrom":[],"start":[],"end":[],"exon":[]}
+        for key in sorted(self.myGenes.keys()):
+            self.myGene[key] = self.myGenes[key][0]
         self.properlyPairedReads = []       # declaration of list for properly paired reads
         self.cProperlyPairedReads = 0       # counter for counting properly paired reads
         self.cMappedReads = 0               # counter for counting mapped reads
         self.geneReadsWithIndels = []       # declaration list of gene reads with indels
         self.cGeneReadsWithIndels = 0       # counter for counting the gene reads with indels
-        for read in self.samfile:
+        # determining relevant data in pysam file
+        for read in self.samfile.fetch(self.myGene["chrom"], self.myGene["start"], self.myGene["end"]):
             # determining the porperly paired reads
             if read.is_proper_pair:
                 self.properlyPairedReads.append(read)
@@ -109,13 +112,12 @@ class Assignment1:
             for row in cursor:
                 if row[0] == self.gene:
                     fh.write(str(row) + "\n")
-                    self.myGene["name2"].append(row[0])
-                    self.myGene["name"].append(row[1])
-                    self.myGene["chrom"].append(row[2])
-                    self.myGene["start"].append(row[3])
-                    self.myGene["end"].append(row[4])
-                    self.myGene["exon"].append(row[6])
-                    self.numberLinesMyGenes += 1
+                    self.myGenes["name2"].append(row[0])
+                    self.myGenes["name"].append(row[1])
+                    self.myGenes["chrom"].append(row[2])
+                    self.myGenes["start"].append(row[3])
+                    self.myGenes["end"].append(row[4])
+                    self.myGenes["exon"].append(row[6])
 
         ## Close cursor & connection
         cursor.close()
@@ -128,9 +130,9 @@ class Assignment1:
             Prints the header of the bam file.
             """
         print("\nheader:")
-        print self.samfile.header["RG"]
-        print self.samfile.header["CO"]
-        print self.samfile.header["HD"]
+        print(self.samfile.header["RG"])
+        print(self.samfile.header["CO"])
+        print(self.samfile.header["HD"])
         # remove comments for printing the whole header object
         #for key in self.samfile.header:
          #   print key
@@ -140,7 +142,7 @@ class Assignment1:
     def get_properly_paired_reads_of_gene(self):
         """
             Returns the properly pared reads of pysam file self.samfile and prints them if you remove the comment signs
-            in lines 149-150: #for line in self.properlyPairedReads: and #print line. Additionally it prints the number
+            in lines 151-152: #for line in self.properlyPairedReads: and #print line. Additionally it prints the number
             of properly paired reads.
 
             :return: a list of the properly paired reads of the gene
@@ -149,12 +151,12 @@ class Assignment1:
         #for line in self.properlyPairedReads:
         #    print line
         print("\n{} Properly paired reads found.".format(self.cProperlyPairedReads))
-        return self.properlyPairedReads
+        return(self.properlyPairedReads)
 
     def get_gene_reads_with_indels(self):
         """
             Returns the gene reads with indels from pysam file self.samfile and prints them if you remove the comment
-            signs in lines 162-163: #for read in self.geneReadsWithIndels: and #print read. Additionally it prints the
+            signs in lines 165-166: #for read in self.geneReadsWithIndels: and #print read. Additionally it prints the
             number of gene reads with indels.
 
             :return: a list of the gene reads with indels
@@ -163,41 +165,46 @@ class Assignment1:
         #for read in self.geneReadsWithIndels:
         #    print read
         print("\n{} gene reads with indels found.".format(self.cGeneReadsWithIndels))
-        return self.geneReadsWithIndels
+        return(self.geneReadsWithIndels)
 
-    def calculate_total_average_coverage(self):
+    def calculate_average_coverage(self,coverageType):
         """
             Calculates the total average coverage of the bedtool file self.bedtoolfile using the genome_coverage method
-            from pybedtools and prints it.
+            from pybedtools. Afterwards it determines the total average coverage and the gene average coverage and
+            prints them if coverageType is "both". If coverageType is "gene", it just prints the genes coverage and
+            returns it. Otherwise it prints the total coverage and returns it.
+
+            :param coverageType: the type of coverage that should be printed/returned. Possible values are "both",
+            "total" and "gene"
+
+            :return the coverage value if param coverageType is not set to "both"
             """
         self.coverageValues = self.bedtoolfile.genome_coverage(bg=True)
-        count = 0
-        sumValues = 0
+        cbam = 0            # for counting the lines with coverage values in self.bedtoolfile
+        cGene = 0           # for counting the lines with coverage values for my gene
+        sumValuesBam = 0    # for summing up the coverage values of the self.bedtoolfile
+        sumValuesGene = 0   # for summing up the coverage values for my gene
         for line in self.coverageValues:
-            count += 1
-            sumValues += int(line[3])
-        print("\ntotal average coverage:")
-        print(float(sumValues)/float(count))
-
-    def calculate_gene_average_coverage(self):
-        """
-            Calculates the gene average coverage of the gene file self.myGene using the genome_coverage method
-            from pybedtools and prints it.
-            Attention: This method doesn't work correct!!
-            """
-        tmp = str()
-        count = 0
-        for value in self.myGene["chrom"]:
-            count += 1
-        print "count:"
-        print count
-        for i in range(0, count):
-            tmp += self.myGene["chrom"][i] + "  " + str(self.myGene["start"][i]) + " " + str(self.myGene["end"][i]) \
-                   + "   \n"
-        myBedfile = pybedtools.BedTool(tmp, from_string=True)
-        coverageValues = myBedfile.genome_coverage(genome="hg19", bg=True)
-        print coverageValues
-        #todo: correct calculate_gene_average_method method!!
+            cbam += 1
+            sumValuesBam += int(line[3])
+            # check if the read is within my gene of interest
+            if self.myGene["start"] <= line[1] and self.myGene["end"] >= line[2]:
+                sumValuesGene += int(line[3])
+                cGene += 1
+        if coverageType == "both":
+            print("\ngene average coverage:")
+            print(self.sumValuesGene / float(self.cGene))
+            print("\ntotal average coverage:")
+            print(float(sumValuesBam) / float(cbam))
+        else:
+            if coverageType == "gene":
+                print("\ngene average coverage:")
+                print(self.sumValuesGene / float(self.cGene))
+                return(self.sumValuesGene / float(self.cGene))
+            else:
+                print("\ntotal average coverage:")
+                print(float(sumValuesBam) / float(cbam))
+                return(float(sumValuesBam) / float(cbam))
 
     def get_number_mapped_reads(self):
         """
@@ -208,39 +215,24 @@ class Assignment1:
 
     def get_gene_symbol(self):
         """
-            Determines the gene symbols of the gene self.myGene and prints them.
+            Prints the gene symbol of the first gene in self.myGenes.
             """
         print("\ngene symbol:")
-        print(self.myGene["name2"][0])
-        # todo: check if really just the one gene name is wanted!
+        print(self.myGenes["name2"][0])
 
     def get_region_of_gene(self):
         """
-            Prints the regions of gene self.myGene if you remove the comment sign(s) either a) in lines 229-230:
-            #print("starts: {}".format(self.myGene["start"])) and #print("\nends: {}".format(self.myGene["end"])) for
-            getting the start end end values row-wise separated or b) in line 238 #print(tmp) for getting the gene
-            name with it's start and end wor-wise.
+            Prints the region of gene self.myGene
 
             :return: a string of gene name, start and end per row, separated with tab
             """
-        print("\n{} regions of gene found".format(self.numberLinesMyGenes))
-        # remove comment sign for output on screen
-        # a) for starts and ends in two separate lines
-        #print("starts: {}".format(self.myGene["start"]))
-        #print("\nends: {}".format(self.myGene["end"]))
-
-        # b) for gene name, start and end column-wise as string, separated by tab
-        tmp = str("gene:    start:   end: \n")
-        for i in range(0, self.numberLinesMyGenes):
-            tmp += self.myGene["name2"][i] + "  " + str(self.myGene["start"][i]) + " " + str(self.myGene["end"][i]) \
-                   + "   \n"
-        # remove comment sign for output on screen
-        # print(tmp)
-        return tmp
+        print("\nregion of gene " + self.myGene["name2"] + ": " + "start: " + str(self.myGene["start"]) + " end: " + \
+              str(self.myGene["end"]))
+        return(self.myGene["name2"] + "  " + str(self.myGenes["start"]) + " " + str(self.myGenes["end"]) + "   \n")
 
     def get_number_of_exons(self):
         """
-            Prints the list of number of exons of the genes in self.myGene.
+            Prints the list of number of exons of the gene in self.myGene.
             """
         print("\nnumber of exons:")
         print(self.myGene["exon"])
@@ -265,29 +257,25 @@ class Assignment1:
                 ['$known_indels_file(s) = ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_mapping_resources/ALL.wgs.indels_mills_devine_hg19_leftAligned_collapsed_double_hit.indels.sites.vcf.gz', '$known_indels_file(s) .= ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_mapping_resources/ALL.wgs.low_coverage_vqsr.20101123.indels.sites.vcf.gz', '$known_sites_file(s) = ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_mapping_resources/ALL.wgs.dbsnp.build135.snps.sites.vcf.gz']
                 {'SO': 'coordinate', 'VN': '1.0'}
 
-                6315902 Properly paired reads found.
+                2382 Properly paired reads found.
 
-                604 gene reads with indels found.
-
-                I'm sorry, but calculate_gene_average_coverage() doesn't work now.
+                26 gene reads with indels found.
 
                 number of mapped reads:
-                6315902
+                2382
 
-                gene symbols:
+                gene symbol:
                 USH1C
 
-                4 regions of gene found
+                region of gene USH1C: start: 17515441 end: 17565963
 
                 number of exons:
-                [21, 27, 20, 20]
+                21
                 """
         self.get_sam_header()
         self.get_properly_paired_reads_of_gene()
         self.get_gene_reads_with_indels()
-        self.calculate_total_average_coverage()
-        #self.calculate_gene_average_coverage()
-        print("\n I'm sorry, but calculate_gene_average_coverage() doesn't work now.")
+        self.calculate_average_coverage("both")
         self.get_number_mapped_reads()
         self.get_gene_symbol()
         self.get_region_of_gene()
