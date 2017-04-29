@@ -38,7 +38,7 @@ class Assignment1:
         ## Your gene of interest
         self.gene = "USH1C"
         # Read a file in BAM format:
-        infileName = "/home/brisi/PycharmProjects/MedizinischeGenomanalysen/HG00096.chrom11.ILLUMINA.bwa.GBR.low_coverage.20120522.bam"
+        infileName = "/home/brisi/PycharmProjects/medizinische_genomanalysen_2017_assignment_1/HG00096.chrom11.ILLUMINA.bwa.GBR.low_coverage.20120522.bam"
         # Create pysam file
         if infileName.endswith(".bam"):
             self.samfile = pysam.AlignmentFile(infileName, "rb")
@@ -186,23 +186,23 @@ class Assignment1:
             cbam += 1
             sumValuesBam += int(line[3])
             # check if the read is within my gene of interest
-            if self.myGene["start"] <= line[1] and self.myGene["end"] >= line[2]:
+            if (self.myGene["start"] <= int(line[1])) and (self.myGene["end"] >= int(line[2])):
                 sumValuesGene += int(line[3])
                 cGene += 1
-            if coverageType == "both":
+        if coverageType == "both":
+            print("\ntotal average coverage:")
+            print(float(sumValuesBam) / float(cbam))
+            print("\ngene average coverage:")
+            print(sumValuesGene / float(cGene))
+        else:
+            if coverageType == "gene":
                 print("\ngene average coverage:")
                 print(sumValuesGene / float(cGene))
+                return(sumValuesGene / float(cGene))
+            else:
                 print("\ntotal average coverage:")
                 print(float(sumValuesBam) / float(cbam))
-            else:
-                if coverageType == "gene":
-                    print("\ngene average coverage:")
-                    print(sumValuesGene / float(cGene))
-                    return(sumValuesGene / float(cGene))
-                else:
-                    print("\ntotal average coverage:")
-                    print(float(sumValuesBam) / float(cbam))
-                    return(float(sumValuesBam) / float(cbam))
+                return(float(sumValuesBam) / float(cbam))
 
     def get_number_mapped_reads(self):
         """
@@ -255,9 +255,15 @@ class Assignment1:
                 ['$known_indels_file(s) = ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_mapping_resources/ALL.wgs.indels_mills_devine_hg19_leftAligned_collapsed_double_hit.indels.sites.vcf.gz', '$known_indels_file(s) .= ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_mapping_resources/ALL.wgs.low_coverage_vqsr.20101123.indels.sites.vcf.gz', '$known_sites_file(s) = ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_mapping_resources/ALL.wgs.dbsnp.build135.snps.sites.vcf.gz']
                 {'SO': 'coordinate', 'VN': '1.0'}
 
-                2382 Properly paired reads found.
+                2351 Properly paired reads found.
 
                 26 gene reads with indels found.
+
+                total average coverage:
+                5.60829419857
+
+                gene average coverage:
+                5.29590887959
 
                 number of mapped reads:
                 2382
