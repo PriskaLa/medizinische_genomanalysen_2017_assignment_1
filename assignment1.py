@@ -18,13 +18,11 @@ class Assignment1:
             - sam header
             - properly paired reads of gene
             - gene reads with indels
-            - total average coverage
-            - gene average coverage
+            - calculate average coverage
             - number of mapped reads
             - gene symbols
             - regions of gene
             - numbers of exons
-            ! gene average coverage method doesn't work correct!
             For more information see: http://pysam.readthedocs.io/en/latest/api.html, https://daler.github.io/pybedtools/
             and http://bedtools.readthedocs.io/en/latest/content/tools/genomecov.html.
             This code fetches the gene coordinates and provides methods for getting the listed properties above and
@@ -33,9 +31,9 @@ class Assignment1:
     def __init__(self):
         """
             The constructor method creates a pysam and a bedtool object from the bam file, fetches the gene USH1C and
-            stores it to a dict. Furthermore it stores a list of the properly paired reads and the reads with indels.
-            Additionally it counts how often they occur in the bam file. Also the mapped reads of the bam file are
-            counted.
+            stores it to a dict. Furthermore it stores just the first gene from the crated dict, a list of the properly
+            paired reads and the reads with indels. Additionally it counts how often they occur in the bam file. Also
+            the mapped reads of the bam file are counted.
             """
         ## Your gene of interest
         self.gene = "USH1C"
