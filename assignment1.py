@@ -189,20 +189,20 @@ class Assignment1:
             if self.myGene["start"] <= line[1] and self.myGene["end"] >= line[2]:
                 sumValuesGene += int(line[3])
                 cGene += 1
-        if coverageType == "both":
-            print("\ngene average coverage:")
-            print(self.sumValuesGene / float(self.cGene))
-            print("\ntotal average coverage:")
-            print(float(sumValuesBam) / float(cbam))
-        else:
-            if coverageType == "gene":
+            if coverageType == "both":
                 print("\ngene average coverage:")
-                print(self.sumValuesGene / float(self.cGene))
-                return(self.sumValuesGene / float(self.cGene))
-            else:
+                print(sumValuesGene / float(cGene))
                 print("\ntotal average coverage:")
                 print(float(sumValuesBam) / float(cbam))
-                return(float(sumValuesBam) / float(cbam))
+            else:
+                if coverageType == "gene":
+                    print("\ngene average coverage:")
+                    print(sumValuesGene / float(cGene))
+                    return(sumValuesGene / float(cGene))
+                else:
+                    print("\ntotal average coverage:")
+                    print(float(sumValuesBam) / float(cbam))
+                    return(float(sumValuesBam) / float(cbam))
 
     def get_number_mapped_reads(self):
         """
