@@ -57,7 +57,7 @@ class Assignment1:
         self.geneReadsWithIndels = []       # declaration list of gene reads with indels
         self.cGeneReadsWithIndels = 0       # counter for counting the gene reads with indels
         # determining relevant data in pysam file
-        for read in self.samfile.fetch(self.myGene["chrom"], self.myGene["start"], self.myGene["end"]):
+        for read in self.samfile.fetch(self.myGene["chrom"].strip("chr"), self.myGene["start"], self.myGene["end"]):
             # determining the porperly paired reads
             if read.is_proper_pair:
                 self.properlyPairedReads.append(read)
