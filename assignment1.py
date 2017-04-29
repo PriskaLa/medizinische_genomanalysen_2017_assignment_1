@@ -140,7 +140,7 @@ class Assignment1:
     def get_properly_paired_reads_of_gene(self):
         """
             Returns the properly pared reads of pysam file self.samfile and prints them if you remove the comment signs
-            in lines 151-152: #for line in self.properlyPairedReads: and #print line. Additionally it prints the number
+            in lines 149-150: #for line in self.properlyPairedReads: and #print line. Additionally it prints the number
             of properly paired reads.
 
             :return: a list of the properly paired reads of the gene
@@ -154,7 +154,7 @@ class Assignment1:
     def get_gene_reads_with_indels(self):
         """
             Returns the gene reads with indels from pysam file self.samfile and prints them if you remove the comment
-            signs in lines 165-166: #for read in self.geneReadsWithIndels: and #print read. Additionally it prints the
+            signs in lines 163-164: #for read in self.geneReadsWithIndels: and #print read. Additionally it prints the
             number of gene reads with indels.
 
             :return: a list of the gene reads with indels
